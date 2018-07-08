@@ -3,9 +3,12 @@ import numpy as np
 class Layer:
     def fit(self, X, y, optimizer, loss_function):
         pass
-        #predicted = self.__fit_predict(X)
-        #loss = loss_function(y, predicted)
-        #self.__fit_update(loss, optimizer)
+        predicted = self.predict(X)
+        loss = loss_function(predicted, y)
+        print("loss=", loss)
+        loss=predicted-y
+
+        self.backprop(loss, optimizer)
 
 class LiniarLayer(Layer):
 
@@ -20,8 +23,26 @@ class LiniarLayer(Layer):
         return self
 
     def predict(self, data):
-        input_activation = self.input.predict(data)
-        return np.dot(self.W, input_activation) + self.b
+        self.input_activation = self.input.predict(data)
+        return np.dot(self.W, self.input_activation) + self.b
+
+    def backprop(self, loss, optimizer):
+        m = self.input_activation.shape[1]
+
+        dW = np.dot(loss, self.input_activation.T) / m
+        db = np.mean(np.sum(loss, axis=1, keepdims=True) / m)
+
+        next_loss = np.dot(self.W.T, loss)
+        
+        assert (next_loss.shape == self.input_activation.shape)
+        assert (dW.shape == self.W.shape)
+        assert (isinstance(db, float))
+
+        self.W = self.W - optimizer(dW)
+        self.b = self.b - optimizer(db)
+
+        self.input.backprop(next_loss, optimizer)
+
 
 class InputLayer(Layer):
 
@@ -34,7 +55,9 @@ class InputLayer(Layer):
     def predict(self, data):
         return data
 
-
+    def backprop(self, loss, optimizer):
+        pass
+         
 class ReluLayer(Layer):
 
     def __init__(self):
@@ -47,10 +70,15 @@ class ReluLayer(Layer):
         return self
 
     def predict(self, data):
-        input_activation = self.input.predict(data)
-        relu_activation = input_activation[:]# copy
+        self.input_activation = self.input.predict(data)
+        relu_activation = self.input_activation[:]
         relu_activation[relu_activation<0] = 0
         return relu_activation
+
+    def backprop(self, loss, optimizer):
+        next_loss = np.zeros(loss.shape)
+        next_loss[self.input_activation > 0] = 1
+        self.input.backprop(next_loss * loss, optimizer)
 
 class TanhLayer(Layer):
 
@@ -64,8 +92,12 @@ class TanhLayer(Layer):
         return self
 
     def predict(self, data):
-        input_activation = self.input.predict(data)
-        return np.tanh(input_activation)
+        self.input_activation = self.input.predict(data)
+        return np.tanh(self.input_activation)
+
+    def backprop(self, loss, optimizer):
+        next_loss = np.sin(self.input_activation)/np.cos(self.input_activation) 
+        self.input.backprop(next_loss * loss, optimizer)
 
 class SoftMaxLayer(Layer):
 
@@ -79,9 +111,13 @@ class SoftMaxLayer(Layer):
         return self
 
     def predict(self, data):
-        input_activation = self.input.predict(data)
-        e_x = np.exp(input_activation - np.max(input_activation))
+        self.input_activation = self.input.predict(data)
+        e_x = np.exp(self.input_activation - np.max(self.input_activation))
         return e_x / e_x.sum(axis=0)
+
+    def backprop(self, loss, optimizer):
+        self.input.backprop(loss, optimizer)
+
 
 
 class SumLayer:
@@ -96,6 +132,6 @@ class SumLayer:
         return self
 
     def predict(self, data):
-        input_activation1 = self.input1.predict(data)
-        input_activation2 = self.input2.predict(data)
-        return input_activation1[:self.output_dim, :] + input_activation2[:self.output_dim, :]
+        self.input_activation1 = self.input1.predict(data)
+        self.input_activation2 = self.input2.predict(data)
+        return self.input_activation1[:self.output_dim, :] + self.input_activation2[:self.output_dim, :]
