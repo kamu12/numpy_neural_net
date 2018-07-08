@@ -75,6 +75,11 @@ class ReluLayer(Layer):
         relu_activation[relu_activation<0] = 0
         return relu_activation
 
+    def backprop(self, loss, optimizer):
+        next_loss = np.zeros(loss.shape)
+        next_loss[self.input_activation > 0] = 1
+        self.input.backprop(next_loss * loss, optimizer)
+
 class TanhLayer(Layer):
 
     def __init__(self):
@@ -89,6 +94,10 @@ class TanhLayer(Layer):
     def predict(self, data):
         self.input_activation = self.input.predict(data)
         return np.tanh(self.input_activation)
+
+    def backprop(self, loss, optimizer):
+        next_loss = np.sin(self.input_activation)/np.cos(self.input_activation) 
+        self.input.backprop(next_loss * loss, optimizer)
 
 class SoftMaxLayer(Layer):
 
