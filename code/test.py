@@ -6,8 +6,21 @@ if __name__ == "__main__":
     np.random.seed(42)
     X,y = load_data("../data/spambase/spambase.data")
 
+
+    X = np.array([[-1, -1, 3], [1, 2, 3]]).T
+    y = np.array([[0, 1], [1, 0]])#.reshape((1, 2))
+
     input_data = InputLayer(3)
 
+    model = LiniarLayer(2)(input_data)
+    model = SoftMaxLayer()(model)
+    sg = Optimizer(0.01)
+    categorical_crossentropy = CategoricalCrossentropy()
+    
+    for i in range(10):
+        model.fit(X, y, sg, categorical_crossentropy)
+    
+    """
     model = LiniarLayer(10)(input_data)
     model = TanhLayer()(model)
     
@@ -21,11 +34,12 @@ if __name__ == "__main__":
     X = np.array([[-1, -1, 3], [1, 2, 3]]).T
     y = np.array([0, 1]).T
     res = model.predict(X)
-    print(res.shape)
-    print(res)
+    #print(res.shape)
+    #print(res)
 
     sg = Optimizer(0.01)
     categorical_crossentropy = CategoricalCrossentropy()
     model.fit(X, y, sg, categorical_crossentropy)
+    """
 
     
