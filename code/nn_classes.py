@@ -2,12 +2,10 @@ import numpy as np
 
 class Layer:
     def fit(self, X, y, optimizer, loss_function):
-        pass
         predicted = self.predict(X)
         loss = loss_function(predicted, y)
         print("loss=", loss)
-        loss=predicted-y
-
+        loss = predicted-y
         self.backprop(loss, optimizer)
 
 class LiniarLayer(Layer):
