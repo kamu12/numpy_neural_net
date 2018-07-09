@@ -14,6 +14,7 @@ def accuracy(pred, y):
 if __name__ == "__main__":
     np.random.seed(42)
     minibatch_size = 20
+    history = []
     X, true_val = load_data("../data/spambase/spambase.data")
 
     y = np.zeros((len(true_val), 2))
@@ -53,5 +54,14 @@ if __name__ == "__main__":
             model.fit(X_train_mini, y_train_mini, sg, categorical_crossentropy)
 
         predicted = model.predict(X_train)
-        print("train accuracy: ", accuracy(predicted, y_train))
+        acc = accuracy(predicted, y_train)
+        history.append(acc)
+        print("train accuracy: ", acc)
+
+    predicted = model.predict(X_test)
+    acc = accuracy(predicted, y_test)
+    print("test accuracy: ", acc)
+
+
+
 
